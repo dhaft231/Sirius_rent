@@ -5,10 +5,9 @@ from sqlmodel import select, Session
 from database import init_db, get_session
 from models import Room, Booking
 
-# Настройка жизненного цикла приложения
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()  # Автоматическая инициализация таблиц при старте
+    init_db()  
     yield
 
 app = FastAPI(title="Сириус Аренда API", lifespan=lifespan)
@@ -18,7 +17,6 @@ def read_root():
     return {"status": "online", "message": "Сервер Сириус.Аренда успешно запущен"}
 
 
-# === УПРАВЛЕНИЕ ПРОСТРАНСТВАМИ (ROOMS) ===
 
 @app.post("/rooms", response_model=Room, status_code=201)
 def create_room(room: Room, session: Session = Depends(get_session)):
@@ -62,8 +60,6 @@ def delete_room(id: int, session: Session = Depends(get_session)):
     return {"detail": f"Комната {id} успешно удалена"}
 
 
-# === УПРАВЛЕНИЕ БРОНИРОВАНИЯМИ (BOOKINGS) ===
-
 @app.post("/bookings", response_model=Booking, status_code=201)
 def create_booking(booking: Booking, session: Session = Depends(get_session)):
     # Защита: преобразуем строковые ISO-даты из JSON в Python datetime объекты
@@ -72,16 +68,13 @@ def create_booking(booking: Booking, session: Session = Depends(get_session)):
     if isinstance(booking.end_time, str):
         booking.end_time = datetime.fromisoformat(booking.end_time)
 
-    # Валидация логики времени
     if booking.start_time >= booking.end_time:
         raise HTTPException(status_code=400, detail="Время начала не может быть позже времени окончания")
 
-    # Проверка существования комнаты
     room = session.get(Room, booking.room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Указанная комната не существует")
 
-    # Проверка наложений пересекающихся бронирований по ТЗ
     overlapping = session.exec(
         select(Booking).where(
             Booking.room_id == booking.room_id,
@@ -115,7 +108,6 @@ def get_room_bookings(id: int, date: date, session: Session = Depends(get_sessio
     if not room:
         raise HTTPException(status_code=404, detail="Комната не найдена")
         
-    # Фильтруем активные бронирования для конкретной комнаты на выбранный день
     start_of_day = datetime.combine(date, datetime.min.time())
     end_of_day = datetime.combine(date, datetime.max.time())
     
