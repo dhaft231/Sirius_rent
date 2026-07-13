@@ -13,7 +13,6 @@ class Room(RoomBase, table=True):
 class BookingBase(SQLModel):
     room_id: int = Field(foreign_key="room.id")
     
-    # Использование Явного Column(DateTime) решает проблему с ошибкой конвертации типов в SQLite
     start_time: datetime = Field(sa_column=Column(DateTime, nullable=False))
     end_time: datetime = Field(sa_column=Column(DateTime, nullable=False))
     
