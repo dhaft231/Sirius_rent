@@ -62,7 +62,6 @@ def delete_room(id: int, session: Session = Depends(get_session)):
 
 @app.post("/bookings", response_model=Booking, status_code=201)
 def create_booking(booking: Booking, session: Session = Depends(get_session)):
-    # Защита: преобразуем строковые ISO-даты из JSON в Python datetime объекты
     if isinstance(booking.start_time, str):
         booking.start_time = datetime.fromisoformat(booking.start_time)
     if isinstance(booking.end_time, str):
