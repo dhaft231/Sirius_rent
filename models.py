@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import Optional, List
-from sqlmodel import SQLModel, Field, JSON
+from sqlmodel import SQLModel, Field, JSON, Column, DateTime
 
 class RoomBase(SQLModel):
-    name: str = Field(index = True)
+    name: str = Field(index=True)
     capacity: int
     equipment: List[str] = Field(default=[], sa_type=JSON)
 
@@ -12,8 +12,11 @@ class Room(RoomBase, table=True):
 
 class BookingBase(SQLModel):
     room_id: int = Field(foreign_key="room.id")
-    start_time: datetime
-    end_time: datetime
+    
+    # Использование Явного Column(DateTime) решает проблему с ошибкой конвертации типов в SQLite
+    start_time: datetime = Field(sa_column=Column(DateTime, nullable=False))
+    end_time: datetime = Field(sa_column=Column(DateTime, nullable=False))
+    
     user_name: str
     status: str = Field(default="активно")
     
